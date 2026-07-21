@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: knowledgeops-ingress
+  namespace: knowledgeops
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/success-codes: "200-399"
+
+spec:
+  ingressClassName: alb
+
+  rules:
+  - http:
+      paths:
+
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: knowledgeops-backend
+            port:
+              number: 8000
+
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: knowledgeops-frontend
+            port:
+              number: 80

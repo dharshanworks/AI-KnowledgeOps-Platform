@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledgeops-backend
+  namespace: knowledgeops
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: knowledgeops-backend
+
+  template:
+    metadata:
+      labels:
+        app: knowledgeops-backend
+
+    spec:
+      containers:
+
+      - name: backend
+
+        image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/knowledgeops-backend:latest
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 8000
+
+        envFrom:
+
+        - secretRef:
+            name: knowledgeops-secret
+
+        - configMapRef:
+            name: knowledgeops-config
+
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"

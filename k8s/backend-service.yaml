@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: knowledgeops-backend
+  namespace: knowledgeops
+
+spec:
+
+  selector:
+    app: knowledgeops-backend
+
+  ports:
+
+  - port: 8000
+    targetPort: 8000
+
+  type: ClusterIP

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: knowledgeops-frontend
+  namespace: knowledgeops
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: knowledgeops-frontend
+
+  template:
+    metadata:
+      labels:
+        app: knowledgeops-frontend
+
+    spec:
+      containers:
+      - name: frontend
+
+        image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/knowledgeops-frontend:latest
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 80
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+          limits:
+            cpu: 250m
+            memory: 256Mi
