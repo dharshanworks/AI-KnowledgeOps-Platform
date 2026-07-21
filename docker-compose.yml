@@ -1,0 +1,133 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: knowledgeops-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: knowledgeops
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - knowledgeops-network
+
+  redis:
+    image: redis:7
+
+    container_name: knowledgeops-redis
+
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    networks:
+      - knowledgeops-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+
+    container_name: knowledgeops-zookeeper
+
+    restart: unless-stopped
+
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+    ports:
+      - "2181:2181"
+
+    networks:
+      - knowledgeops-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+
+    container_name: knowledgeops-kafka
+
+    restart: unless-stopped
+
+    depends_on:
+      - zookeeper
+
+    ports:
+      - "9092:9092"
+
+    environment:
+      KAFKA_BROKER_ID: 1
+
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+    networks:
+      - knowledgeops-network
+
+  backend:
+    build:
+      context: ./backend
+
+    image: knowledgeops-backend
+
+    container_name: knowledgeops-backend
+
+    restart: unless-stopped
+
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/faiss_index:/app/faiss_index
+
+    networks:
+      - knowledgeops-network
+
+  frontend:
+    build:
+      context: ./frontend
+
+    image: knowledgeops-frontend
+
+    container_name: knowledgeops-frontend
+
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:80"
+
+    networks:
+      - knowledgeops-network
+
+volumes:
+  postgres_data:
+
+networks:
+  knowledgeops-network:
+    driver: bridge

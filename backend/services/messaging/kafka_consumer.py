@@ -1,78 +1,74 @@
 import json
+import os
+import time
 
-from kafka import KafkaConsumer
+from dotenv import load_dotenv
+from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable
 
-from services.rag.rag_service import (
-    extract_text_from_pdf,
-    split_text_into_chunks,
-    create_vector_store,
+load_dotenv()
+
+KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
+DOCUMENT_UPLOAD_TOPIC = os.getenv(
+    "DOCUMENT_UPLOAD_TOPIC",
+    "document-upload",
 )
 
-KAFKA_BROKER = "localhost:9092"
-DOCUMENT_UPLOAD_TOPIC = "document-upload"
-CONSUMER_GROUP = "knowledgeops-group"
-
-consumer = KafkaConsumer(
-    DOCUMENT_UPLOAD_TOPIC,
-    bootstrap_servers=KAFKA_BROKER,
-    auto_offset_reset="latest",
-    group_id=CONSUMER_GROUP,
-    value_deserializer=lambda message: json.loads(
-        message.decode("utf-8")
-    ),
-)
-
-print("\n========================================")
-print("Kafka Consumer Started")
-print("Waiting for document upload events...")
-print("========================================\n")
+producer = None
 
 
-def process_document(filename: str, filepath: str):
+def get_producer():
     """
-    Process a document uploaded through Kafka.
+    Create Kafka producer only when needed.
+    Retries until Kafka becomes available.
     """
 
-    print("=" * 60)
-    print(f"Processing Document : {filename}")
-    print("=" * 60)
+    global producer
 
-    text = extract_text_from_pdf(filepath)
+    if producer is not None:
+        return producer
 
-    print("PDF Extracted Successfully")
+    while True:
+        try:
+            producer = KafkaProducer(
+                bootstrap_servers=KAFKA_BROKER,
+                value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+            )
 
-    chunks = split_text_into_chunks(text)
+            print("\n========================================")
+            print("Kafka Producer Connected")
+            print(f"Broker : {KAFKA_BROKER}")
+            print("========================================\n")
 
-    print(f"Chunks Created : {len(chunks)}")
+            return producer
 
-    create_vector_store(
-        chunks=chunks,
-        source_file=filename,
-    )
-
-    print("FAISS Vector Store Updated")
-
-    print(f"{filename} Processed Successfully\n")
+        except NoBrokersAvailable:
+            print(f"Kafka not available at {KAFKA_BROKER}. Retrying in 5 seconds...")
+            time.sleep(5)
 
 
-for message in consumer:
+def publish_document(filename: str, filepath: str) -> None:
+    """
+    Publish a document upload event to Kafka.
+    """
 
-    event = message.value
+    kafka_producer = get_producer()
 
-    filename = event["filename"]
-    filepath = event["filepath"]
+    event = {
+        "filename": filename,
+        "filepath": filepath,
+    }
 
     try:
-
-        process_document(
-            filename=filename,
-            filepath=filepath,
+        kafka_producer.send(
+            DOCUMENT_UPLOAD_TOPIC,
+            value=event,
         )
 
-    except Exception as e:
+        kafka_producer.flush()
 
-        print("=" * 60)
-        print("Document Processing Failed")
-        print("=" * 60)
-        print(e)
-        print()
+        print(f"Published document upload event: {filename}")
+
+    except Exception as e:
+        print(f"Failed to publish Kafka event: {e}")
+        raise
