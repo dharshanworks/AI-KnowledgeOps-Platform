@@ -15,11 +15,13 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Database
 # ==========================
 
-DATABASE_HOST = os.getenv("DATABASE_HOST")
-DATABASE_PORT = os.getenv("DATABASE_PORT")
-DATABASE_NAME = os.getenv("DATABASE_NAME")
-DATABASE_USER = os.getenv("DATABASE_USER")
-DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+# DATABASE_HOST = os.getenv("DATABASE_HOST")
+# DATABASE_PORT = os.getenv("DATABASE_PORT")
+# DATABASE_NAME = os.getenv("DATABASE_NAME")
+# DATABASE_USER = os.getenv("DATABASE_USER")
+# DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # ==========================
 # Redis
@@ -32,7 +34,7 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 # Kafka
 # ==========================
 
-KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
 
 DOCUMENT_UPLOAD_TOPIC = os.getenv(
     "DOCUMENT_UPLOAD_TOPIC",
