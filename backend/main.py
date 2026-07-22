@@ -1,15 +1,40 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
+# ==========================
+# Database
+# ==========================
+
+from database.connection import engine
+from database.base import Base
+
+# Import all models before create_all()
+from models.user import User
+
+# ==========================
+# Routers
+# ==========================
+
 from api.v1.upload import router as upload_router
 from api.v1.chat import router as chat_router
 from api.v1.auth import router as auth_router
+
+# ==========================
+# FastAPI App
+# ==========================
 
 app = FastAPI(
     title="Enterprise AI KnowledgeOps Platform",
     description="Enterprise AI Knowledge Management Platform",
     version="1.0.0",
 )
+
+# ==========================
+# Create Database Tables
+# ==========================
+
+Base.metadata.create_all(bind=engine)
 
 # ==========================
 # CORS Configuration

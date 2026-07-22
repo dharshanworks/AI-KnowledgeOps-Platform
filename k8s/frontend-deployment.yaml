@@ -21,7 +21,7 @@ spec:
       containers:
       - name: frontend
 
-        image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/knowledgeops-frontend:latest
+        image: 747848915242.dkr.ecr.us-east-1.amazonaws.com/knowledgeops-frontend:v2
 
         imagePullPolicy: Always
 
