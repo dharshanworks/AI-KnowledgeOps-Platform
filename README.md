@@ -367,10 +367,7 @@ B.Tech Information Technology
 Cloud & DevOps Enthusiast | Full Stack Developer | AI Engineer
 
 - GitHub: https://github.com/dharshanworks
-- LinkedIn: *(Add your LinkedIn Profile URL here)*
+
 
 ---
 
-# License
-
-This project is licensed under the MIT License.
